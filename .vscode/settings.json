@@ -1,0 +1,9 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "chat.tools.terminal.autoApprove": {
+        "/^node scripts/generate-post-og-image-locale\\.js strategy-template-method-patterns en$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
