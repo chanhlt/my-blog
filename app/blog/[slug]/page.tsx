@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getPostBySlug } from '@/lib/posts';
 import { compileMDXContent } from '@/lib/mdx';
+import { ViewCounter } from '@/components/ViewCounter';
+import { SubscribeForm } from '@/components/SubscribeForm';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -48,6 +50,9 @@ export default async function PostPage({ params }: PageProps) {
         </Link>
         <time className="block text-sm text-muted-foreground mb-2">{post.date}</time>
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+        <div className="flex items-center gap-4 mb-4">
+          <ViewCounter slug={slug} shouldCount={true} />
+        </div>
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
@@ -64,6 +69,9 @@ export default async function PostPage({ params }: PageProps) {
       {/* Class prose cho typography đẹp */}
       <div className="prose prose-slate dark:prose-invert max-w-none">
         {content}
+      </div>
+      <div className="mt-12">
+        <SubscribeForm />
       </div>
     </article>
   );
