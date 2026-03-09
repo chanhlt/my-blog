@@ -1,69 +1,76 @@
-import { Suspense } from "react";
-import Link from "next/link";
 import { Metadata } from "next";
+import Link from "next/link";
 import { Pin } from "lucide-react";
-import { searchPosts, paginatePosts, getAllTags } from "@/lib/posts";
-import { SearchBar } from "@/components/SearchBar";
+import { getPostsByTag, getAllTags, paginatePosts } from "@/lib/posts";
 import { TagBadge } from "@/components/TagBadge";
 import { Pagination } from "@/components/Pagination";
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  params: Promise<{ tag: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
-export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
-  const { q, page } = await searchParams;
-  let title = "Blog";
-  if (q) title = `Tìm kiếm: "${q}"`;
-  if (page && Number(page) > 1) title += ` — Trang ${page}`;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+  const posts = getPostsByTag(decodedTag);
   return {
-    title,
-    description: q
-      ? `Kết quả tìm kiếm cho "${q}"`
-      : "Tất cả bài viết trên blog",
+    title: `Posts tagged "${decodedTag}"`,
+    description: `${posts.length} bài viết với tag "${decodedTag}"`,
+    openGraph: {
+      title: `Posts tagged "${decodedTag}"`,
+      description: `${posts.length} bài viết với tag "${decodedTag}"`,
+    },
   };
 }
 
-export default async function BlogPage({ searchParams }: PageProps) {
-  const { q, page } = await searchParams;
+export function generateStaticParams() {
+  const tags = getAllTags();
+  return tags.map((tag) => ({ tag: encodeURIComponent(tag.name) }));
+}
+
+export default async function TagPage({ params, searchParams }: PageProps) {
+  const { tag } = await params;
+  const { page } = await searchParams;
+  const decodedTag = decodeURIComponent(tag);
   const currentPage = Number(page) || 1;
 
-  const allPosts = searchPosts(q || "");
+  const allPosts = getPostsByTag(decodedTag);
   const { posts, totalPages } = paginatePosts(allPosts, currentPage);
-  const tags = getAllTags();
-
-  // Giữ search param khi chuyển trang
-  const paginationSearchParams: Record<string, string> = {};
-  if (q) paginationSearchParams.q = q;
+  const allTags = getAllTags();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Blog</h1>
-
-      <div className="mb-6">
-        <Suspense fallback={null}>
-          <SearchBar />
-        </Suspense>
+      <div className="mb-8">
+        <Link
+          href="/blog"
+          className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4"
+        >
+          ← Quay lại blog
+        </Link>
+        <h1 className="text-4xl font-bold mb-2">
+          Tag: {decodedTag}
+        </h1>
+        <p className="text-muted-foreground">
+          {allPosts.length} bài viết
+        </p>
       </div>
 
-      {tags.length > 0 && (
+      {allTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-8">
-          {tags.map((tag) => (
-            <TagBadge key={tag.name} tag={tag.name} count={tag.count} />
+          {allTags.map((t) => (
+            <TagBadge
+              key={t.name}
+              tag={t.name}
+              count={t.count}
+              clickable={t.name !== decodedTag.toLowerCase()}
+            />
           ))}
         </div>
       )}
 
-      {q && (
-        <p className="text-sm text-muted-foreground mb-4">
-          Tìm thấy {allPosts.length} kết quả cho &ldquo;{q}&rdquo;
-        </p>
-      )}
-
       {posts.length === 0 ? (
-        <p className="text-muted-foreground">
-          {q ? "Không tìm thấy bài viết nào." : "Chưa có bài nào. Quay lại sau nhé!"}
-        </p>
+        <p className="text-muted-foreground">Không có bài viết nào với tag này.</p>
       ) : (
         <div className="space-y-8">
           {posts.map((post) => (
@@ -89,12 +96,12 @@ export default async function BlogPage({ searchParams }: PageProps) {
                   <p className="text-muted-foreground">{post.description}</p>
                   {post.tags.length > 0 && (
                     <div className="flex gap-2 mt-3">
-                      {post.tags.map((tag) => (
+                      {post.tags.map((t) => (
                         <span
-                          key={tag}
+                          key={t}
                           className="px-2 py-1 text-xs rounded-full bg-secondary text-secondary-foreground"
                         >
-                          {tag}
+                          {t}
                         </span>
                       ))}
                     </div>
@@ -109,8 +116,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath="/blog"
-        searchParams={paginationSearchParams}
+        basePath={`/blog/tags/${encodeURIComponent(decodedTag)}`}
       />
     </div>
   );

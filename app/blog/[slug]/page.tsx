@@ -5,6 +5,7 @@ import { getPostBySlug } from '@/lib/posts';
 import { compileMDXContent } from '@/lib/mdx';
 import { ViewCounter } from '@/components/ViewCounter';
 import { SubscribeForm } from '@/components/SubscribeForm';
+import { TagBadge } from '@/components/TagBadge';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -48,7 +49,11 @@ export default async function PostPage({ params }: PageProps) {
         >
           ← Quay lại blog
         </Link>
-        <time className="block text-sm text-muted-foreground mb-2">{post.date}</time>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+          <time>{post.date}</time>
+          <span>·</span>
+          <span>{post.readingTime} min read</span>
+        </div>
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         <div className="flex items-center gap-4 mb-4">
           <ViewCounter slug={slug} shouldCount={true} />
@@ -56,12 +61,7 @@ export default async function PostPage({ params }: PageProps) {
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-1 text-sm rounded-full bg-secondary text-secondary-foreground"
-              >
-                {tag}
-              </span>
+              <TagBadge key={tag} tag={tag} />
             ))}
           </div>
         )}
