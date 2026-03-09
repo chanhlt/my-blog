@@ -1,0 +1,69 @@
+---
+title: "Hướng Dẫn Drizzle ORM Cho Người Mới"
+description: "Từ zero đến hero với Drizzle ORM — type-safe SQL cho TypeScript developers."
+date: "2026-03-03"
+tags: ["database", "typescript", "tutorial"]
+---
+
+Drizzle ORM là một ORM nhẹ, type-safe cho TypeScript. Nó gần với SQL hơn so với Prisma.
+
+## Cài Đặt
+
+```bash
+npm install drizzle-orm postgres
+npm install -D drizzle-kit
+```
+
+## Định Nghĩa Schema
+
+```typescript
+import { pgTable, serial, text, timestamp, integer } from 'drizzle-orm/pg-core';
+
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content'),
+  viewCount: integer('view_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+## Query Builder
+
+Drizzle cho phép viết query gần giống SQL thuần:
+
+```typescript
+import { db } from './db';
+import { posts } from './schema';
+import { eq, desc } from 'drizzle-orm';
+
+// Select tất cả posts
+const allPosts = await db.select().from(posts);
+
+// Filter và sort
+const recentPosts = await db
+  .select()
+  .from(posts)
+  .where(eq(posts.viewCount, 0))
+  .orderBy(desc(posts.createdAt));
+```
+
+## Migrations
+
+```bash
+npx drizzle-kit generate
+npx drizzle-kit migrate
+```
+
+Drizzle Kit tự động tạo SQL migration files dựa trên schema changes.
+
+## So Sánh Với Prisma
+
+| Feature | Drizzle | Prisma |
+|---------|---------|--------|
+| Bundle size | Nhẹ | Nặng |
+| SQL control | Cao | Trung bình |
+| Type safety | Tốt | Tốt |
+| Learning curve | SQL knowledge | Schema DSL |
+
+Drizzle phù hợp cho developers muốn kiểm soát SQL nhiều hơn.

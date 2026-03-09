@@ -1,0 +1,85 @@
+---
+title: "10 Mẹo Tailwind CSS Giúp Code Nhanh Hơn"
+description: "Những tips và tricks Tailwind CSS mà mình ước biết sớm hơn."
+date: "2026-03-05"
+tags: ["css", "tailwind", "tips"]
+---
+
+Sau hơn một năm sử dụng Tailwind CSS, đây là những mẹo mình thấy hữu ích nhất.
+
+## 1. Dùng `cn()` Để Merge Classes
+
+```typescript
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+// Sử dụng
+cn('px-4 py-2', isActive && 'bg-primary text-white');
+```
+
+## 2. Group Hover
+
+Thay vì quản lý state, dùng `group` và `group-hover`:
+
+```html
+<div className="group border rounded-lg p-4">
+  <h2 className="group-hover:text-primary">Tiêu đề</h2>
+  <p className="group-hover:text-muted-foreground">Mô tả</p>
+</div>
+```
+
+## 3. Responsive Design Với Mobile-First
+
+```html
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- Cards -->
+</div>
+```
+
+## 4. Dark Mode Với `dark:` Prefix
+
+```html
+<div className="bg-white dark:bg-gray-900 text-black dark:text-white">
+  Tự động chuyển đổi theme
+</div>
+```
+
+## 5. Arbitrary Values
+
+Khi cần giá trị custom:
+
+```html
+<div className="top-[117px] grid-cols-[1fr_2fr_1fr]">
+  Custom values khi cần
+</div>
+```
+
+## 6. Container Queries
+
+Tailwind v4 hỗ trợ container queries:
+
+```html
+<div className="@container">
+  <div className="@md:flex @md:gap-4">
+    Responsive theo container, không phải viewport
+  </div>
+</div>
+```
+
+## 7. Prose Cho Typography
+
+Plugin `@tailwindcss/typography` giúp style markdown content:
+
+```html
+<article className="prose dark:prose-invert max-w-none">
+  <!-- MDX content -->
+</article>
+```
+
+## Kết Luận
+
+Tailwind CSS giúp build UI nhanh hơn rất nhiều khi bạn nắm vững các patterns cơ bản.

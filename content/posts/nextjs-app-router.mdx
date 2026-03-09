@@ -1,0 +1,53 @@
+---
+title: "Tìm Hiểu App Router Trong Next.js"
+description: "Khám phá cách App Router thay đổi cách xây dựng ứng dụng Next.js với Server Components và nested layouts."
+date: "2026-03-01"
+tags: ["nextjs", "react", "tutorial"]
+featured: true
+---
+
+App Router là kiến trúc routing mới của Next.js, thay thế Pages Router truyền thống.
+
+## Server Components Mặc Định
+
+Trong App Router, mọi component đều là Server Component trừ khi bạn khai báo `"use client"`.
+
+```typescript
+// Đây là Server Component — chạy trên server
+export default async function Page() {
+  const data = await fetch('https://api.example.com/posts');
+  const posts = await data.json();
+  return <div>{posts.map(p => <h2 key={p.id}>{p.title}</h2>)}</div>;
+}
+```
+
+## Nested Layouts
+
+Một trong những tính năng mạnh nhất là nested layouts:
+
+```typescript
+// app/blog/layout.tsx
+export default function BlogLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="max-w-3xl mx-auto">
+      <nav>Blog Navigation</nav>
+      {children}
+    </div>
+  );
+}
+```
+
+## Loading và Error States
+
+App Router hỗ trợ `loading.tsx` và `error.tsx` cho mỗi route segment:
+
+```typescript
+// app/blog/loading.tsx
+export default function Loading() {
+  return <div className="animate-pulse">Đang tải...</div>;
+}
+```
+
+## Kết Luận
+
+App Router mang lại trải nghiệm developer tốt hơn với Server Components, streaming, và data fetching tích hợp.

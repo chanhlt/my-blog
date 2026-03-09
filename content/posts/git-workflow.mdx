@@ -1,0 +1,80 @@
+---
+title: "Git Workflow Cho Dự Án Cá Nhân"
+description: "Cách tổ chức branches và commits hiệu quả cho solo developer."
+date: "2026-03-06"
+tags: ["git", "workflow", "tips"]
+---
+
+Dù làm một mình, một git workflow tốt giúp bạn quản lý code hiệu quả hơn.
+
+## Branch Strategy
+
+```
+main          ← production-ready code
+├── feature/* ← tính năng mới
+├── fix/*     ← sửa lỗi
+└── chore/*   ← refactor, docs, config
+```
+
+## Conventional Commits
+
+Dùng prefix cho commit messages:
+
+```bash
+feat: add dark mode toggle
+fix: resolve hydration mismatch
+docs: update README
+chore: upgrade dependencies
+refactor: extract PostCard component
+```
+
+## Useful Git Commands
+
+### Xem thay đổi trước khi commit
+
+```bash
+git diff --staged  # Xem những gì sẽ được commit
+git log --oneline --graph  # Xem lịch sử đẹp
+```
+
+### Stash khi cần chuyển branch
+
+```bash
+git stash push -m "WIP: feature X"
+git stash list
+git stash pop
+```
+
+### Interactive rebase (cẩn thận!)
+
+```bash
+git rebase -i HEAD~3  # Gộp/sửa 3 commits gần nhất
+```
+
+## `.gitignore` Essentials
+
+```
+node_modules/
+.next/
+.env.local
+.env*.local
+*.log
+.DS_Store
+```
+
+## Git Hooks Với Husky
+
+```bash
+npm install -D husky lint-staged
+npx husky init
+```
+
+```json
+{
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"]
+  }
+}
+```
+
+Một workflow đơn giản nhưng nhất quán sẽ giúp bạn rất nhiều về lâu dài.

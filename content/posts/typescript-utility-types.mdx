@@ -1,0 +1,93 @@
+---
+title: "Utility Types Trong TypeScript Bạn Nên Biết"
+description: "Tổng hợp các utility types phổ biến nhất trong TypeScript và cách sử dụng thực tế."
+date: "2026-03-04"
+tags: ["typescript", "tips"]
+---
+
+TypeScript cung cấp nhiều utility types giúp transform types một cách linh hoạt.
+
+## Partial và Required
+
+```typescript
+interface User {
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Tất cả fields trở thành optional
+type UpdateUser = Partial<User>;
+
+// Tất cả fields trở thành required
+type StrictUser = Required<User>;
+```
+
+## Pick và Omit
+
+```typescript
+// Chỉ lấy name và email
+type UserPreview = Pick<User, 'name' | 'email'>;
+
+// Bỏ age
+type UserWithoutAge = Omit<User, 'age'>;
+```
+
+## Record
+
+```typescript
+type Role = 'admin' | 'user' | 'guest';
+
+const permissions: Record<Role, string[]> = {
+  admin: ['read', 'write', 'delete'],
+  user: ['read', 'write'],
+  guest: ['read'],
+};
+```
+
+## Extract và Exclude
+
+```typescript
+type Status = 'active' | 'inactive' | 'pending' | 'deleted';
+
+// Chỉ lấy active statuses
+type ActiveStatus = Extract<Status, 'active' | 'pending'>;
+// Result: 'active' | 'pending'
+
+// Loại bỏ deleted
+type VisibleStatus = Exclude<Status, 'deleted'>;
+// Result: 'active' | 'inactive' | 'pending'
+```
+
+## ReturnType và Parameters
+
+```typescript
+function createUser(name: string, age: number) {
+  return { id: Math.random(), name, age };
+}
+
+type UserReturn = ReturnType<typeof createUser>;
+// { id: number; name: string; age: number }
+
+type UserParams = Parameters<typeof createUser>;
+// [name: string, age: number]
+```
+
+## Awaited
+
+```typescript
+type Response = Promise<{ data: User[] }>;
+type Data = Awaited<Response>;
+// { data: User[] }
+```
+
+## Custom Utility Type
+
+```typescript
+// DeepPartial — recursive Partial
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+```
+
+Nắm vững utility types giúp code TypeScript clean và type-safe hơn rất nhiều.

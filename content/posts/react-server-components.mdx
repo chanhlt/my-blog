@@ -1,0 +1,88 @@
+---
+title: "React Server Components — Hiểu Đúng Để Dùng Đúng"
+description: "Phân biệt Server Components và Client Components, khi nào dùng cái nào."
+date: "2026-03-02"
+tags: ["react", "nextjs", "tutorial"]
+---
+
+React Server Components (RSC) là một paradigm mới trong React ecosystem. Hãy cùng tìm hiểu.
+
+## Server vs Client Components
+
+### Server Components (mặc định)
+- Chạy trên server, không gửi JS đến client
+- Có thể `await` trực tiếp
+- Không dùng được hooks (`useState`, `useEffect`)
+
+```typescript
+// Server Component — không cần "use client"
+export default async function PostList() {
+  const posts = await db.select().from(postsTable);
+  return (
+    <ul>
+      {posts.map(post => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Client Components
+- Chạy trên browser
+- Dùng được hooks và event handlers
+- Khai báo `"use client"` ở đầu file
+
+```typescript
+"use client";
+
+import { useState } from 'react';
+
+export function LikeButton() {
+  const [likes, setLikes] = useState(0);
+  return (
+    <button onClick={() => setLikes(l => l + 1)}>
+      ❤️ {likes}
+    </button>
+  );
+}
+```
+
+## Khi Nào Dùng Cái Nào?
+
+| Tình huống | Component |
+|-----------|-----------|
+| Fetch data | Server |
+| Access database | Server |
+| Dùng hooks | Client |
+| Event handlers | Client |
+| Browser APIs | Client |
+| Static UI | Server |
+
+## Composition Pattern
+
+Server Components có thể render Client Components, nhưng không ngược lại:
+
+```typescript
+// Server Component
+import { LikeButton } from './LikeButton'; // Client Component
+
+export default async function Post({ id }: { id: string }) {
+  const post = await getPost(id);
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+      <LikeButton /> {/* Client Component bên trong Server Component */}
+    </article>
+  );
+}
+```
+
+## Lỗi Thường Gặp
+
+1. **Import server-only code trong Client Component** — sẽ lỗi build
+2. **Truyền non-serializable props** — chỉ JSON-serializable data
+3. **Quên `"use client"`** — khi dùng hooks sẽ báo lỗi
+
+RSC giúp giảm bundle size đáng kể và cải thiện performance.
