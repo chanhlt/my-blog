@@ -13,6 +13,7 @@ A Vietnamese personal blog built with Next.js 16, ShadCN/UI, Tailwind CSS v4, MD
 - **rehype-pretty-code + Shiki** — VS Code–quality syntax highlighting
 - **Drizzle ORM** — Type-safe SQL ORM for PostgreSQL
 - **PostgreSQL 17** — Database via Docker Compose
+- **Docker** — Multi-stage build, Compose for dev & production
 - **lucide-react** — Icons
 - **TypeScript** — Type safety throughout
 
@@ -51,7 +52,11 @@ lib/
 
 content/posts/                  # MDX blog post files
 drizzle/                        # Generated SQL migrations
-docker-compose.yml              # PostgreSQL 17 (port 5433)
+Dockerfile                      # Multi-stage build (deps → builder → runner)
+docker-compose.yml              # Dev: PostgreSQL + Next.js app
+docker-compose.prod.yml         # Production overrides (restart, logging, localhost-only)
+.dockerignore                   # Excludes node_modules, .next, etc.
+.env.example                    # Environment variable template
 drizzle.config.ts               # Drizzle Kit configuration
 ```
 
@@ -89,7 +94,23 @@ npm run db:migrate
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the site.
+Open [http://localhost:3003](http://localhost:3003) to view the site.
+
+### Docker (full stack)
+
+```bash
+# Development — builds app + starts PostgreSQL
+docker compose up -d --build
+
+# Production — with restart policies, log rotation, localhost-only port
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# Stop (preserves data)
+docker compose down
+
+# Stop and delete data
+docker compose down -v
+```
 
 ## Scripts
 
@@ -113,6 +134,6 @@ This project is built as part of the [Build a Personal Blog](https://chanhle.dev
 | Phase 1 | Next.js 16 + ShadCN/UI Setup |
 | Phase 2 | MDX On-Demand Rendering |
 | Phase 3 | PostgreSQL + Drizzle ORM |
-| Phase 4 | Tags, Search & Pagination _(coming soon)_ |
-| Phase 5 | Docker Compose _(coming soon)_ |
+| Phase 4 | Tags, Search & Pagination |
+| Phase 5 | Docker Compose |
 | Phase 6 | Deploy to Ubuntu VPS _(coming soon)_ |
