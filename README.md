@@ -54,8 +54,9 @@ content/posts/                  # MDX blog post files
 drizzle/                        # Generated SQL migrations
 Dockerfile                      # Multi-stage build (deps → builder → runner)
 docker-compose.yml              # Dev: PostgreSQL + Next.js app
-docker-compose.prod.yml         # Production overrides (restart, logging, localhost-only)
+docker-compose.prod.yml         # Production overrides (restart, logging, no exposed DB port, localhost-only app)
 .dockerignore                   # Excludes node_modules, .next, etc.
+deploy.sh                       # VPS deployment script
 .env.example                    # Environment variable template
 drizzle.config.ts               # Drizzle Kit configuration
 ```
@@ -125,6 +126,97 @@ docker compose down -v
 | `npm run db:studio`  | Open Drizzle Studio at localhost:4983    |
 | `npm run db:push`    | Push schema directly (dev only)          |
 
+## Deployment (Ubuntu VPS)
+
+### Prerequisites
+
+- Ubuntu VPS (e.g. Hostinger KVM 1: 4GB RAM, 1 vCPU, 50GB NVMe)
+- Domain name pointing to VPS IP
+- Docker & Docker Compose installed on VPS
+
+### Server Setup
+
+1. Create a `deploy` user and configure SSH key authentication
+2. Harden SSH (`PasswordAuthentication no`, `PermitRootLogin no`)
+3. Configure firewall: `sudo ufw allow OpenSSH && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw enable`
+4. Install fail2ban for brute-force protection
+5. Install Docker Engine & Compose plugin
+
+### Deploy
+
+```bash
+# Clone repo on VPS
+git clone https://github.com/YOUR_USERNAME/my-blog.git
+cd my-blog
+
+# Create production env file
+cp .env.example .env.production
+# Edit .env.production with real values (use `openssl rand -base64 32` for password)
+
+# Build and start
+docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+  --env-file .env.production up -d --build
+```
+
+### Nginx Reverse Proxy
+
+```bash
+sudo apt install -y nginx
+sudo nano /etc/nginx/sites-available/blog
+```
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_cache_valid 200 365d;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    location /images/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_cache_valid 200 30d;
+        add_header Cache-Control "public, max-age=2592000";
+    }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/blog
+sudo rm /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### SSL with Let's Encrypt
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+### Subsequent Deploys
+
+```bash
+# From local machine
+git push origin main
+ssh deploy@YOUR_VPS_IP "cd ~/my-blog && ./deploy.sh"
+```
+
 ## Series
 
 This project is built as part of the [Build a Personal Blog](https://chanhle.dev/vi/blog/personal-blog-nextjs-roadmap) series:
@@ -136,4 +228,4 @@ This project is built as part of the [Build a Personal Blog](https://chanhle.dev
 | Phase 3 | PostgreSQL + Drizzle ORM |
 | Phase 4 | Tags, Search & Pagination |
 | Phase 5 | Docker Compose |
-| Phase 6 | Deploy to Ubuntu VPS _(coming soon)_ |
+| Phase 6 | Deploy to Ubuntu VPS |
