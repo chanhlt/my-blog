@@ -209,6 +209,22 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ```
 
+### Custom Domain
+
+1. Point your domain to the VPS with DNS A records:
+   - `@` → `YOUR_VPS_IP`
+   - `www` → `YOUR_VPS_IP`
+2. Update Nginx to handle www→apex redirect and your domain's `server_name`
+3. Run Certbot for SSL: `sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com`
+4. Set `NEXT_PUBLIC_SITE_URL=https://yourdomain.com` in `.env.production` and rebuild
+
+### SEO
+
+- `public/robots.txt` — allows all crawlers, points to sitemap
+- `app/sitemap.ts` — auto-generated sitemap at `/sitemap.xml`
+- Open Graph and Twitter meta tags configured via `lib/config.ts` and `app/layout.tsx`
+- Submit `https://yourdomain.com/sitemap.xml` to Google Search Console
+
 ### Subsequent Deploys
 
 ```bash
@@ -229,3 +245,4 @@ This project is built as part of the [Build a Personal Blog](https://chanhle.dev
 | Phase 4 | Tags, Search & Pagination |
 | Phase 5 | Docker Compose |
 | Phase 6 | Deploy to Ubuntu VPS |
+| Phase 7 | Custom Domain & SEO |
